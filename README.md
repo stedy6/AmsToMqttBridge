@@ -1,4 +1,6 @@
 # AMS <-> MQTT Bridge
+Personal fork for Stedy. Intended to use with Home Assistant and a BKK AMS.
+
 > This project may help you build your own reader for HAN data streamed from the new AMS electrical meters installed in Norway in 2017/2018. Data is read using an Arduino-programmed ESP8266 (in an ESP12 module from AI Thinker), then pushed to MQTT over WiFi. You can have full control over this data, and you can basically do anything with it. 
 >
 > This project does not include any fancy UI setup or even storage for the AMS data.
