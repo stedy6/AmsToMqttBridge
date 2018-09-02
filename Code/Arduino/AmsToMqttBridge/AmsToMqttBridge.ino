@@ -4,7 +4,7 @@
  Author:	roarf
 */
 
-
+#include <Arduino.h>
 #include <DallasTemperature.h>
 #include <OneWire.h>
 #include <ArduinoJson.h>
@@ -14,6 +14,7 @@
 #include <Kamstrup.h>
 #include "configuration.h"
 #include "accesspoint.h"
+
 
 #define WIFI_CONNECTION_TIMEOUT 30000;
 #define TEMP_SENSOR_PIN 5 // Temperature sensor connected to GPIO5
@@ -33,7 +34,7 @@ PubSubClient mqtt;
 // Object used for debugging
 HardwareSerial* debugger = NULL;
 
-// The HAN Port reader, used to read serial data and decode DLMS
+// The HAN Port reader, used to read serial data and decode 
 HanReader hanReader;
 
 // the setup function runs once when you press reset or power the board
@@ -166,6 +167,7 @@ void readHanPort()
 
 		// Get the list identifier
 		int listSize = hanReader.getListSize();
+   
 
 		switch (ap.config.meterType)
 		{
@@ -283,7 +285,7 @@ void readHanPort_Kamstrup(int listSize)
 		if (ap.config.mqttPublishTopic == 0 || strlen(ap.config.mqttPublishTopic) == 0)
 			return;
 
-		// Publish the json to the MQTT server
+		// Publish the json to the MQTT server. size is changed in PubSubClient.h from 128 to 1024
 		char msg[1024];
 		root.printTo(msg, 1024);
 		mqtt.publish(ap.config.mqttPublishTopic, msg);
@@ -293,8 +295,10 @@ void readHanPort_Kamstrup(int listSize)
 
 void readHanPort_Kaifa(int listSize) 
 {
+
+  
 	// Only care for the ACtive Power Imported, which is found in the first list
-	if (listSize == (int)Kaifa::List1 || listSize == (int)Kaifa::List2 || listSize == (int)Kaifa::List3)
+	if (listSize == (int)Kaifa::List1 || listSize == (int)Kaifa::List2 || listSize == (int)Kaifa::List3 || listSize == (int)Kaifa::List21 || listSize == (int)Kaifa::List31)
 	{
 		if (listSize == (int)Kaifa::List1)
 		{
@@ -302,7 +306,7 @@ void readHanPort_Kaifa(int listSize)
 		}
 		else
 		{
-			String id = hanReader.getString((int)Kaifa_List2::ListVersionIdentifier);
+			String id = hanReader.getString((int)Kaifa_List21::ListVersionIdentifier);
 			if (debugger) debugger->println(id);
 		}
 
@@ -350,6 +354,18 @@ void readHanPort_Kaifa(int listSize)
 			data["U2"] = hanReader.getInt((int)Kaifa_List2::VoltageL2);
 			data["U3"] = hanReader.getInt((int)Kaifa_List2::VoltageL3);
 		}
+
+    else if (listSize == (int)Kaifa::List21)
+    {
+      data["lv"] = hanReader.getString((int)Kaifa_List21::ListVersionIdentifier);
+      data["id"] = hanReader.getString((int)Kaifa_List21::MeterID);
+      data["type"] = hanReader.getString((int)Kaifa_List21::MeterType);
+      data["P"] = hanReader.getInt((int)Kaifa_List21::ActiveImportPower);
+      data["Q"] = hanReader.getInt((int)Kaifa_List21::ReactiveImportPower);
+      data["I1"] = hanReader.getInt((int)Kaifa_List21::CurrentL1);
+      data["U1"] = hanReader.getInt((int)Kaifa_List21::VoltageL1);
+    }
+   
 		else if (listSize == (int)Kaifa::List3)
 		{
 			data["lv"] = hanReader.getString((int)Kaifa_List3::ListVersionIdentifier);;
@@ -369,6 +385,21 @@ void readHanPort_Kaifa(int listSize)
 			data["tQO"] = hanReader.getInt((int)Kaifa_List3::CumulativeReactiveExportEnergy);
 		}
 
+    else if (listSize == (int)Kaifa::List31)
+    {
+      data["lv"] = hanReader.getString((int)Kaifa_List31::ListVersionIdentifier);;
+      data["id"] = hanReader.getString((int)Kaifa_List31::MeterID);
+      data["type"] = hanReader.getString((int)Kaifa_List31::MeterType);
+      data["P"] = hanReader.getInt((int)Kaifa_List31::ActiveImportPower);
+      data["Q"] = hanReader.getInt((int)Kaifa_List31::ReactiveImportPower);
+      data["I1"] = hanReader.getInt((int)Kaifa_List31::CurrentL1);
+      data["U1"] = hanReader.getInt((int)Kaifa_List31::VoltageL1);
+      data["tPI"] = hanReader.getInt((int)Kaifa_List31::CumulativeActiveImportEnergy);
+      data["tPO"] = hanReader.getInt((int)Kaifa_List31::CumulativeActiveExportEnergy);
+      data["tQI"] = hanReader.getInt((int)Kaifa_List31::CumulativeReactiveImportEnergy);
+      data["tQO"] = hanReader.getInt((int)Kaifa_List31::CumulativeReactiveExportEnergy);
+    }
+
 		// Write the json to the debug port
 		if (debugger) {
 			debugger->print("Sending data to MQTT: ");
@@ -380,10 +411,12 @@ void readHanPort_Kaifa(int listSize)
 		if (ap.config.mqttPublishTopic == 0 || strlen(ap.config.mqttPublishTopic) == 0)
 			return;
 
-		// Publish the json to the MQTT server
+		// Publish the json to the MQTT server. size is changed in PubSubClient.h from 128 to 1024
 		char msg[1024];
 		root.printTo(msg, 1024);
-		mqtt.publish(ap.config.mqttPublishTopic, msg);
+   	//mqtt.publish(ap.config.mqttPublishTopic, msg);
+    mqtt.publish(ap.config.mqttPublishTopic, msg);
+    
 	}
 }
 

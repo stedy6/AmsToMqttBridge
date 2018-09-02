@@ -1,11 +1,11 @@
 #ifndef _CRC16_h
 #define _CRC16_h
 
-#if defined(ARDUINO) && ARDUINO >= 100
-  #include "arduino.h"
-#else
-  #include "WProgram.h"
-#endif
+#define ARDUINO_H
+#include <stdint.h>
+#include <stddef.h>
+#include <stdlib.h>
+#include "Arduino.h"
 
 class Crc16Class
 {

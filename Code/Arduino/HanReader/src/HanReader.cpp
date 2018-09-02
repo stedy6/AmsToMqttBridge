@@ -99,6 +99,7 @@ bool HanReader::read()
 
 int HanReader::getListSize()
 {
+		
 	return listSize;
 }
 
